@@ -106,7 +106,35 @@ Resources:
                   - iam:GetRolePolicy
                   - iam:TagRole
                   - iam:UntagRole
+                  # CloudFront resource-level perms are limited; broad allow.
+                  - cloudfront:*
                 Resource: "*"
+              # S3 management for the frontend hosting bucket (created by app stack)
+              # AND aws s3 sync from the deploy workflow.
+              - Effect: Allow
+                Action:
+                  - s3:CreateBucket
+                  - s3:DeleteBucket
+                  - s3:PutBucketPolicy
+                  - s3:GetBucketPolicy
+                  - s3:DeleteBucketPolicy
+                  - s3:PutBucketEncryption
+                  - s3:GetBucketEncryption
+                  - s3:PutBucketPublicAccessBlock
+                  - s3:GetBucketPublicAccessBlock
+                  - s3:PutBucketOwnershipControls
+                  - s3:GetBucketOwnershipControls
+                  - s3:PutBucketVersioning
+                  - s3:GetBucketVersioning
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                  - s3:PutObjectAcl
+                Resource:
+                  - !Sub "arn:aws:s3:::rr-cloudtasks-frontend-*"
+                  - !Sub "arn:aws:s3:::rr-cloudtasks-frontend-*/*"
 
   SamArtifactsBucket:
     Type: AWS::S3::Bucket

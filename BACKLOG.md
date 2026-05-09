@@ -45,14 +45,11 @@ Living list of technical debt, feature enhancements, and deferred work for `rr-c
   - First successful deploy to `dev` stage.
   - Smoke test: signup via Cognito, create/list/update/delete a task end-to-end.
 
-### [Feature] CloudFront + S3 frontend hosting
-- **Context:** Initial AWS deployment is backend-only. Frontend currently runs locally pointed at the deployed API. Need static hosting before the app is publicly accessible.
+### [Tech Debt] Tighten API Gateway CORS to the CloudFront domain
+- **Context:** API Gateway HTTP API CORS currently allows `AllowOrigins: ["*"]`. Once the CloudFront distribution exists, restrict to that domain only.
 - **Acceptance criteria:**
-  - S3 bucket for static hosting (private, fronted by CloudFront).
-  - CloudFront distribution with Origin Access Control, SSL via ACM, optional custom domain.
-  - Add to SAM template (preferred) or as a separate CloudFormation stack.
-  - Add frontend build + S3 sync + CloudFront invalidation steps back to `deploy.yml`.
-  - Re-add the `FRONTEND_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, `VITE_API_URL`, `VITE_USER_POOL_ID`, `VITE_USER_POOL_CLIENT_ID` GitHub secrets.
+  - SAM template `CorsConfiguration.AllowOrigins` references the CloudFront distribution domain (and any custom domain) only.
+  - Local dev still works (option: add `http://localhost:5173` and `http://localhost:5174` to allowed origins for dev stage; restrict tighter for prod stage).
 
 ### [Feature] Configure Cognito to send verification emails via Amazon SES
 - **Context:** User pool currently uses Cognito's default email service (`no-reply@verificationemail.com`), which has a 50/day limit and no branding/customization. Production users will see emails from a generic AWS address that may be flagged as spam.
@@ -101,4 +98,6 @@ Living list of technical debt, feature enhancements, and deferred work for `rr-c
 
 _(Move resolved items here with completion date; prune after ~5 entries to keep the list focused.)_
 
-- _Nothing yet._
+- **2026-05-09 — [Feature] CloudFront + S3 frontend hosting.** Added S3 bucket, CloudFront distribution with Origin Access Control, SPA error rewrites, and bucket policy to SAM template. Deploy workflow now builds frontend with stack-output env vars, syncs to S3 with split caching policies, and invalidates CloudFront.
+- **2026-05-09 — [Bug] Lambda packaging missing `utils/` directory.** Fixed `CodeUri` in SAM template so handlers can resolve `require("../utils/dynamodb")`.
+- **2026-05-09 — [Tech Debt] `samconfig.toml` missing `version` key.** Removed unused config file (deploy params passed via CLI flags instead).
