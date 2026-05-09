@@ -1,0 +1,21 @@
+{
+  "name": "rr-cloudtasks-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local-dev orchestration for rr-cloudtasks",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "local:api": "node local-server.js",
+    "frontend:dev": "npm run dev --prefix frontend",
+    "dev": "concurrently -n API,WEB -c blue,green \"npm run local:api\" \"npm run frontend:dev\"",
+    "stop": "echo Stopping is handled by Ctrl+C"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "dynalite": "^3.2.2",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

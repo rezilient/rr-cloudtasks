@@ -1,0 +1,20 @@
+{
+  "name": "rr-cloudtasks-backend",
+  "version": "1.0.0",
+  "description": "Lambda backend for rr-cloudtasks",
+  "main": "src/handlers/index.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "lint": "eslint src/**/*.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@aws-sdk/types": "^3.600.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0"
+  }
+}
