@@ -69,6 +69,13 @@ Resources:
                   - cloudformation:GetTemplateSummary
                   - cloudformation:ListStacks
                 Resource: "*"
+              # SAM transforms live under aws-owned ARNs; CreateChangeSet
+              # needs explicit allow on the Serverless transform.
+              - Effect: Allow
+                Action:
+                  - cloudformation:CreateChangeSet
+                Resource:
+                  - arn:aws:cloudformation:*:aws:transform/Serverless-2016-10-31
               # SAM artifacts bucket
               - Effect: Allow
                 Action:
