@@ -46,11 +46,13 @@ Living list of technical debt, feature enhancements, and deferred work for `rr-c
   - Smoke test: signup via Cognito, create/list/update/delete a task end-to-end.
 
 ### [Feature] CloudFront + S3 frontend hosting
-- **Context:** Deploy workflow assumes an S3 bucket and CloudFront distribution exist. Need to provision them — either add to SAM template or set up via AWS Console / separate IaC stack.
+- **Context:** Initial AWS deployment is backend-only. Frontend currently runs locally pointed at the deployed API. Need static hosting before the app is publicly accessible.
 - **Acceptance criteria:**
   - S3 bucket for static hosting (private, fronted by CloudFront).
-  - CloudFront distribution with OAI/OAC, custom domain (optional), SSL.
-  - Cache invalidation tested in deploy workflow.
+  - CloudFront distribution with Origin Access Control, SSL via ACM, optional custom domain.
+  - Add to SAM template (preferred) or as a separate CloudFormation stack.
+  - Add frontend build + S3 sync + CloudFront invalidation steps back to `deploy.yml`.
+  - Re-add the `FRONTEND_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, `VITE_API_URL`, `VITE_USER_POOL_ID`, `VITE_USER_POOL_CLIENT_ID` GitHub secrets.
 
 ### [Enhancement] Add unit tests for Lambda handlers
 - **Context:** Handlers have no test coverage yet. `package.json` references `jest` as a dev dependency but no tests are written.

@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  rr-cloudtasks bootstrap stack — one-time setup creating the GitHub OIDC
+  provider, an IAM role GitHub Actions can assume to deploy this app, and
+  an S3 bucket for SAM build artifacts. Deploy this once before the SAM
+  app stack and before any GitHub Actions deploy runs.
+
+Parameters:
+  GitHubOrg:
+    Type: String
+    Default: rezilient
+    Description: GitHub user/org that owns the repo
+  GitHubRepo:
+    Type: String
+    Default: rr-cloudtasks
+    Description: GitHub repository name
+  AppStackName:
+    Type: String
+    Default: rr-cloudtasks-app
+    Description: Name of the SAM app stack the role will deploy
+
+Resources:
+  # GitHub Actions OIDC provider — lets GitHub Actions exchange a workflow
+  # token for short-lived AWS credentials, no long-lived keys needed.
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      ThumbprintList:
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+        - 1c58a3a8518e8759bf075b76b750d4f2df264fcd
+
+  # The role GitHub Actions assumes. Trust policy restricts assumption to
+  # workflows running in the specified GitHub repo only.
+  GitHubActionsDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-github-actions"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOidcProvider
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": !Sub "repo:${GitHubOrg}/${GitHubRepo}:*"
+      Policies:
+        - PolicyName: SamDeployPermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              # CloudFormation: full access to our app stack only
+              - Effect: Allow
+                Action:
+                  - cloudformation:*
+                Resource:
+                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AppStackName}/*"
+                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AppStackName}-*/*"
+              - Effect: Allow
+                Action:
+                  - cloudformation:ValidateTemplate
+                  - cloudformation:DescribeStacks
+                  - cloudformation:GetTemplateSummary
+                  - cloudformation:ListStacks
+                Resource: "*"
+              # SAM artifacts bucket
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource:
+                  - !GetAtt SamArtifactsBucket.Arn
+                  - !Sub "${SamArtifactsBucket.Arn}/*"
+              # Resources the app stack creates/manages
+              - Effect: Allow
+                Action:
+                  - lambda:*
+                  - apigateway:*
+                  - dynamodb:*
+                  - cognito-idp:*
+                  - logs:*
+                  - iam:GetRole
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:PassRole
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:GetRolePolicy
+                  - iam:TagRole
+                  - iam:UntagRole
+                Resource: "*"
+
+  SamArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-sam-artifacts-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldArtifacts
+            Status: Enabled
+            ExpirationInDays: 90
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
+
+Outputs:
+  GitHubActionsRoleArn:
+    Description: ARN of the IAM role for GitHub Actions OIDC. Set as GitHub secret AWS_DEPLOY_ROLE_ARN.
+    Value: !GetAtt GitHubActionsDeployRole.Arn
+
+  SamArtifactsBucketName:
+    Description: S3 bucket for SAM build artifacts. Set as GitHub secret SAM_ARTIFACTS_BUCKET.
+    Value: !Ref SamArtifactsBucket
