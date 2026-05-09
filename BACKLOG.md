@@ -37,14 +37,6 @@ Living list of technical debt, feature enhancements, and deferred work for `rr-c
   - Cognito JWT authorizer behavior is exercised locally (instead of mocked via `x-mock-user-id` header).
   - Express wrapper (`local-server.js`) is removed.
 
-### [Feature] Production AWS deployment
-- **Context:** SAM template (`infrastructure/template.yaml`) and GitHub Actions deploy workflow (`.github/workflows/deploy.yml`) are written but not yet executed against a real AWS account.
-- **Acceptance criteria:**
-  - AWS account configured with OIDC trust to GitHub Actions.
-  - All 7 GitHub Actions secrets populated (see README "GitHub Actions Setup").
-  - First successful deploy to `dev` stage.
-  - Smoke test: signup via Cognito, create/list/update/delete a task end-to-end.
-
 ### [Feature] Custom domain for the frontend
 - **Context:** App is currently served from the auto-generated `d*.cloudfront.net` URL. Production should use a branded domain (e.g., `cloudtasks.app` or `tasks.<owned-domain>`).
 - **Acceptance criteria:**
@@ -110,6 +102,7 @@ Living list of technical debt, feature enhancements, and deferred work for `rr-c
 
 _(Move resolved items here with completion date; prune after ~5 entries to keep the list focused.)_
 
+- **2026-05-09 — [Feature] Production AWS deployment.** First successful end-to-end deploy via GitHub Actions OIDC. Live at https://dphep0w41khg6.cloudfront.net. Smoke-tested signup + CRUD on real Cognito + Lambda + DynamoDB.
 - **2026-05-09 — [Feature] CloudFront + S3 frontend hosting.** Added S3 bucket, CloudFront distribution with Origin Access Control, SPA error rewrites, and bucket policy to SAM template. Deploy workflow now builds frontend with stack-output env vars, syncs to S3 with split caching policies, and invalidates CloudFront.
 - **2026-05-09 — [Bug] Lambda packaging missing `utils/` directory.** Fixed `CodeUri` in SAM template so handlers can resolve `require("../utils/dynamodb")`.
 - **2026-05-09 — [Tech Debt] `samconfig.toml` missing `version` key.** Removed unused config file (deploy params passed via CLI flags instead).
