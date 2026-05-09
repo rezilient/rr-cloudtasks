@@ -45,6 +45,18 @@ Living list of technical debt, feature enhancements, and deferred work for `rr-c
   - First successful deploy to `dev` stage.
   - Smoke test: signup via Cognito, create/list/update/delete a task end-to-end.
 
+### [Feature] Custom domain for the frontend
+- **Context:** App is currently served from the auto-generated `d*.cloudfront.net` URL. Production should use a branded domain (e.g., `cloudtasks.app` or `tasks.<owned-domain>`).
+- **Acceptance criteria:**
+  - Domain registered (Route 53 or external registrar — Route 53 is simplest because hosted zone integration is automatic).
+  - ACM certificate issued in **us-east-1** (required for CloudFront) covering the apex and `www` (or just the chosen subdomain).
+  - SAM template parameterized with `DomainName` and `CertificateArn`; CloudFront `Aliases` and `ViewerCertificate` configured when these are provided.
+  - DNS record (Alias A in Route 53, or CNAME at external registrar) points to the CloudFront distribution.
+  - Verify HTTPS works on the custom domain and that HTTP redirects to HTTPS.
+- **Notes:**
+  - DNS validation for ACM is the cleanest path — fully automatic if the domain is in Route 53.
+  - If using a subdomain only (e.g. `app.example.com`), no apex/www handling needed.
+
 ### [Tech Debt] Tighten API Gateway CORS to the CloudFront domain
 - **Context:** API Gateway HTTP API CORS currently allows `AllowOrigins: ["*"]`. Once the CloudFront distribution exists, restrict to that domain only.
 - **Acceptance criteria:**
