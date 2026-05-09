@@ -54,6 +54,22 @@ Living list of technical debt, feature enhancements, and deferred work for `rr-c
   - Add frontend build + S3 sync + CloudFront invalidation steps back to `deploy.yml`.
   - Re-add the `FRONTEND_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, `VITE_API_URL`, `VITE_USER_POOL_ID`, `VITE_USER_POOL_CLIENT_ID` GitHub secrets.
 
+### [Feature] Configure Cognito to send verification emails via Amazon SES
+- **Context:** User pool currently uses Cognito's default email service (`no-reply@verificationemail.com`), which has a 50/day limit and no branding/customization. Production users will see emails from a generic AWS address that may be flagged as spam.
+- **Acceptance criteria:**
+  - SES sender domain or email verified (DKIM/SPF DNS records added).
+  - SES out of sandbox (production access via AWS support ticket).
+  - SAM template updated to set `EmailConfiguration` on the User Pool with `EmailSendingAccount: DEVELOPER` and the verified SES `From` address.
+  - Verification emails arrive from the branded sender.
+  - Optional: customize email templates (subject + HTML body) via `VerificationMessageTemplate`.
+
+### [Enhancement] Friendly empty state for first-time users
+- **Context:** When a freshly signed-up user has no tasks yet, the UI currently shows a generic "No tasks found. Create one to get started!" message (only when API call succeeds with empty list — currently masked by a separate Lambda packaging bug). Want a more welcoming first-time experience.
+- **Acceptance criteria:**
+  - When `tasks.length === 0` AND no filters/search are active, show: **"Welcome! Click + New Task to start getting your life organized."**
+  - When `tasks.length === 0` AND a filter or search IS active, show the existing "no matches" message.
+  - Distinguish using props/state in `TaskList` or `TaskDashboard`.
+
 ### [Enhancement] Add unit tests for Lambda handlers
 - **Context:** Handlers have no test coverage yet. `package.json` references `jest` as a dev dependency but no tests are written.
 - **Acceptance criteria:**

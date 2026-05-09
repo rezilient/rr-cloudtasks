@@ -124,8 +124,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "CloudTasks-create-${Stage}"
-      CodeUri: ../backend/src/handlers/
-      Handler: createTask.handler
+      CodeUri: ../backend/src/
+      Handler: handlers/createTask.handler
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TasksTable
@@ -141,8 +141,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "CloudTasks-list-${Stage}"
-      CodeUri: ../backend/src/handlers/
-      Handler: listTasks.handler
+      CodeUri: ../backend/src/
+      Handler: handlers/listTasks.handler
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref TasksTable
@@ -158,8 +158,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "CloudTasks-update-${Stage}"
-      CodeUri: ../backend/src/handlers/
-      Handler: updateTask.handler
+      CodeUri: ../backend/src/
+      Handler: handlers/updateTask.handler
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TasksTable
@@ -175,8 +175,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "CloudTasks-delete-${Stage}"
-      CodeUri: ../backend/src/handlers/
-      Handler: deleteTask.handler
+      CodeUri: ../backend/src/
+      Handler: handlers/deleteTask.handler
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TasksTable
